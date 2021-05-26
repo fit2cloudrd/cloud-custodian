@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "c7n_huawei"
+version = "0.1.0"
+description = "Cloud Custodian - HUAWEI Cloud Provider"
+readme = "readme.md"
+homepage = "https://cloudcustodian.io"
+repository = "https://github.com/cloud-custodian/cloud-custodian"
+documentation = "https://cloudcustodian.io/docs/"
+authors = ["Cloud Custodian Project"]
+license = "Apache-2.0"
+classifiers = [
+   "Topic :: System :: Systems Administration",
+   "Topic :: System :: Distributed Computing"
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+huaweicloud-sdk-python = "^1.0.24"
+esdk-obs-python = "^3.20.5"
+crcmod = "^1.7"
+pycryptodome = "^3.9.8"
+cryptography = "^2.9.2"
+huaweicloudsdkecs = "^3.0.33rc0"
+huaweicloudsdkvpc = "^3.0.33rc0"
+huaweicloudsdkcore = "^3.0.33rc0"
+huaweicloudsdkiam = "^3.0.33rc0"
+huaweicloudsdkces = "^3.0.33rc0"
+huaweicloudsdkims = "^3.0.33rc0"
+huaweicloudsdkeip = "^3.0.33rc0"
+huaweicloudsdkelb = "^3.0.33rc0"
+huaweicloudsdkevs = "^3.0.33rc0"
+huaweicloudsdkrds = "^3.0.33rc0"
+huaweicloudsdkdcs = "^3.0.33rc0"
+huaweicloudsdkdds = "^3.0.33rc0"
+huaweicloudsdkrabbitmq = "^3.0.33rc0"
+requests-futures = "^1.0.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12", "setuptools>=40.8.0"]
+build-backend = "poetry.masonry.api"

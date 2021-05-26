@@ -49,7 +49,7 @@ def should_load_provider(name, provider_types):
     return False
 
 
-PROVIDER_NAMES = ('aws', 'azure', 'gcp', 'k8s')
+PROVIDER_NAMES = ('aws', 'azure', 'gcp', 'k8s', 'aliyun', 'huawei', 'tencent', 'openstack', 'vsphere')
 
 
 def load_available(resources=True):
@@ -73,7 +73,6 @@ def load_available(resources=True):
 
 def load_providers(provider_types):
     global LOADED
-
     # Even though we're lazy loading resources we still need to import
     # those that are making available generic filters/actions
     if should_load_provider('aws', provider_types):
@@ -96,4 +95,23 @@ def load_providers(provider_types):
     if should_load_provider('c7n', provider_types):
         from c7n import data  # noqa
 
+    if should_load_provider('aliyun', provider_types):
+        from c7n_aliyun.entry import initialize_aliyun
+        initialize_aliyun()
+
+    if should_load_provider('huawei', provider_types):
+        from c7n_huawei.entry import initialize_huawei
+        initialize_huawei()
+
+    if should_load_provider('tencent', provider_types):
+        from c7n_tencent.entry import initialize_tencent
+        initialize_tencent()
+
+    if should_load_provider('openstack', provider_types):
+        from c7n_openstack.entry import initialize_openstack
+        initialize_openstack()
+
+    if should_load_provider('vsphere', provider_types):
+        from c7n_vsphere.entry import initialize_vsphere
+        initialize_vsphere()
     LOADED.update(provider_types)
