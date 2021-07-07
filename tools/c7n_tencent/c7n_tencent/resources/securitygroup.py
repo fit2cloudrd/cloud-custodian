@@ -95,11 +95,11 @@ class IPPermission(SGPermission):
               filters:
                   - or:
                       - type: ingress
-                        IpProtocol: tcp
+                        IpProtocol: TCP
                         Ports: [20,21,22,25,80,443,465,1433,1434,3306,3389,4333,5432,5500]
                         Cidr: "0.0.0.0/0"
                       - type: ingress
-                        IpProtocol: tcp
+                        IpProtocol: TCP
                         Ports: [20,21,22,25,80,443,465,1433,1434,3306,3389,4333,5432,5500]
                         CidrV6: "::/0"
     """
@@ -113,7 +113,7 @@ class IPPermission(SGPermission):
     schema['properties'].update(SGPermissionSchema)
 
     def process_self_cidrs(self, perm):
-        self.process_cidrs(perm, 'CidrBlock', 'Ipv6CidrBlock')
+        return self.process_cidrs(perm, 'CidrBlock', 'Ipv6CidrBlock')
 
     def securityGroupAttributeRequst(self, sg):
         self.direction = 'Ingress'
@@ -156,8 +156,8 @@ class IPPermission(SGPermission):
             res.IpPermissions = resp2.SecurityGroupPolicySet
         return resp.to_json_string().replace('null', 'None')
 
-def process_self_cidrs(self, perm):
-        self.process_cidrs(perm, "CidrBlock", "Ipv6CidrBlock")
+    def process_self_cidrs(self, perm):
+        return self.process_cidrs(perm, "CidrBlock", "Ipv6CidrBlock")
 
 
 @SecurityGroup.filter_registry.register('source-cidr-ip')

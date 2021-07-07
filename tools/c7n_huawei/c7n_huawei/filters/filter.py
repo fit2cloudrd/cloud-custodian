@@ -1,9 +1,7 @@
 import datetime
-import json
 from concurrent.futures import as_completed
 from datetime import timedelta
 
-import jmespath
 from dateutil.parser import parse
 from dateutil.tz import tzutc
 from openstack import utils
@@ -14,6 +12,7 @@ from c7n.filters.core import OPERATORS
 from c7n.filters.core import ValueFilter
 from c7n.utils import local_session, chunks
 from c7n.utils import type_schema
+
 
 class HuaweiEcsFilter(Filter):
     schema = None
@@ -301,8 +300,7 @@ class SGPermission(Filter):
             ToPort = int(perm['port_range_min'])
             for port in self.ports:
                 if port >= FromPort and port <= ToPort:
-                    found = True
-                    break
+                    return True
                 found = False
             only_found = False
             for port in self.only_ports:
@@ -404,8 +402,8 @@ class SGPermission(Filter):
             if perm['direction'] != self.direction:
                 continue
             perm_matches = {}
-            perm_matches['ports'] = self.process_ports(perm)
             perm_matches['cidrs'] = self.process_self_cidrs(perm)
+            perm_matches['ports'] = self.process_ports(perm)
             perm_match_values = list(filter(
                 lambda x: x is not None, perm_matches.values()))
             # account for one python behavior any([]) == False, all([]) == True

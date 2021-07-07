@@ -8,7 +8,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # pre-requisite distro deps, and build env setup
 RUN apk add --update \
  curl \
- && apk add gcc g++ make libffi-dev openssl-dev libtool --no-cache \
+ && apk add gcc g++ make git libffi-dev openssl-dev libxml2-dev libxslt-dev musl-dev cargo libtool --no-cache \
  && python3 -m venv /usr/local \
  && curl -sSL https://nginx-qa.fit2cloud.com/tools/get-poetry.py | python3
 
@@ -26,17 +26,23 @@ ADD tools/c7n_gcp /src/tools/c7n_gcp
 RUN rm -R tools/c7n_gcp/tests
 ADD tools/c7n_azure /src/tools/c7n_azure
 RUN rm -R tools/c7n_azure/tests_azure
-ADD tools/c7n_kube /src/tools/c7n_kube
-RUN rm -R tools/c7n_kube/tests
+#ADD tools/c7n_kube /src/tools/c7n_kube
+#RUN rm -R tools/c7n_kube/tests
 ADD tools/c7n_aliyun /src/tools/c7n_aliyun
 RUN rm -R tools/c7n_aliyun/test
 ADD tools/c7n_huawei /src/tools/c7n_huawei
 RUN rm -R tools/c7n_huawei/test
 ADD tools/c7n_tencent /src/tools/c7n_tencent
 RUN rm -R tools/c7n_tencent/test
+ADD tools/c7n_openstack /src/tools/c7n_openstack
+RUN rm -R tools/c7n_openstack/test
+ADD tools/c7n_vsphere /src/tools/c7n_vsphere
+RUN rm -R tools/c7n_vsphere/test
 
 # Install requested providers
-ARG providers="azure gcp kube aliyun huawei tencent"
+ARG providers="azure gcp aliyun huawei tencent openstack vsphere"
+RUN . /usr/local/bin/activate && \
+    pip install --upgrade git+https://github.com/vmware/vsphere-automation-sdk-python.git
 RUN . /usr/local/bin/activate && \
     for pkg in $providers; do cd tools/c7n_$pkg && \
     $HOME/.poetry/bin/poetry lock && \

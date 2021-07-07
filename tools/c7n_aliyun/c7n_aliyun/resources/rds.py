@@ -79,7 +79,7 @@ class AvailableZonesRdsFilter(AliyunRdsFilter):
 
         response = Session.client(self, service).do_action_with_exception(request)
 
-        string = str(response, encoding="utf-8").replace("false", "False")
+        string = str(response, encoding="utf-8").replace("false", "False").replace("true", "True")
         data = eval(string)
         if self.data['value']==True:
             flag = len(data['AvailableZones']) > 0
@@ -117,7 +117,7 @@ class AliyunRdsFilter(AliyunRdsFilter):
 
         request.set_DBInstanceId(i['DBInstanceId'])
         response = Session.client(self, service).do_action_with_exception(request)
-        string = str(response, encoding="utf-8").replace("false", "False")
+        string = str(response, encoding="utf-8").replace("false", "False").replace("true", "True")
         data = eval(string)
         DBInstanceAttributes = data['Items']['DBInstanceAttribute']
         for obj in DBInstanceAttributes:
@@ -154,7 +154,7 @@ class HighAvailabilityRdsFilter(AliyunRdsFilter):
 
         request.set_DBInstanceId(i['DBInstanceId'])
         response = Session.client(self, service).do_action_with_exception(request)
-        string = str(response, encoding="utf-8").replace("false", "False")
+        string = str(response, encoding="utf-8").replace("false", "False").replace("true", "True")
         data = eval(string)
         DBInstanceAttributes = data['Items']['DBInstanceAttribute']
         for obj in DBInstanceAttributes:
@@ -221,6 +221,30 @@ class ConnectionModeRds2Filter(AliyunRdsFilter):
             return False
         return i
 
+@Rds.filter_registry.register('vpc-type')
+class VpcTypeRdsFilter(AliyunRdsFilter):
+    """Filters
+       :Example:
+       .. code-block:: yaml
+
+        policies:
+            # 检测您账号下的Rds实例指定属于哪些VPC, 属于则合规，不属于则"不合规"。
+            - name: aliyun-rds-vpc-type
+              resource: aliyun.rds
+              filters:
+                - type: vpc-type
+                  vpcIds: ["111", "222"]
+    """
+    schema = type_schema(
+        'vpc-type',
+        **{'vpcIds': {'type': 'array', 'items': {'type': 'string'}}})
+
+    def get_request(self, i):
+        vpcId = i['VpcId']
+        if vpcId in self.data['vpcIds']:
+            return False
+        return i
+
 @Rds.filter_registry.register('instance-network-type')
 class InstanceNetworkTypeRdsFilter(AliyunRdsFilter):
     """Filters
@@ -272,21 +296,38 @@ class InternetAccessRdsFilter(AliyunRdsFilter):
         request1.set_DBInstanceId(i['DBInstanceId'])
         response1 = Session.client(self, service).do_action_with_exception(request1)
 
-        string1 = str(response1, encoding="utf-8").replace("false", "False")
+        string1 = str(response1, encoding="utf-8").replace("false", "False").replace("true", "True")
         EcsSecurityGroupRelation = jmespath.search('Items.EcsSecurityGroupRelation', eval(string1))
 
         request2 = DescribeDBInstanceIPArrayListRequest()
         request2.set_accept_format('json')
         request2.set_DBInstanceId(i['DBInstanceId'])
         response2 = Session.client(self, service).do_action_with_exception(request2)
-        string2 = str(response2, encoding="utf-8").replace("false", "False")
+        string2 = str(response2, encoding="utf-8").replace("false", "False").replace("true", "True")
 
         DBInstanceIPArray = jmespath.search('Items.DBInstanceIPArray', eval(string2))
         if self.data['value']:
             if len(EcsSecurityGroupRelation) == 0 and len(DBInstanceIPArray) == 0:
+                return False
+            elif len(DBInstanceIPArray) > 0:
+                for db in DBInstanceIPArray:
+                    if self.is_internal_ip(db) is not True:
+                        pass
                 return False
         else:
             return False
         i['EcsSecurityGroupRelation'] = EcsSecurityGroupRelation
         i['DBInstanceIPArray'] = DBInstanceIPArray
         return i
+
+    def is_internal_ip(self, ip):
+        ip = self.ip_into_int(ip)
+        net_a = self.ip_into_int('10.255.255.255') >> 24
+        net_b = self.ip_into_int('172.31.255.255') >> 20
+        net_c = self.ip_into_int('192.168.255.255') >> 16
+        return ip >> 24 == net_a or ip >>20 == net_b or ip >> 16 == net_c
+
+    def ip_into_int(self, ip):
+        # 先把 192.168.31.46 用map分割'.'成数组，然后用reduuce+lambda转成10进制的 3232243502
+        # (((((192 * 256) + 168) * 256) + 31) * 256) + 46
+        return self.reduce(lambda x,y:(x<<8)+y,map(int,ip.split('.')))
